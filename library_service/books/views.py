@@ -7,7 +7,7 @@ from books.serializers import BookSerializer, BookListSerializer
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
-    permission_classes = IsAdminOrReadOnly
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == "list":
