@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 
 
 class Book(models.Model):
@@ -10,7 +12,11 @@ class Book(models.Model):
     author = models.CharField(max_length=255)
     cover = models.CharField(max_length=4, choices=CoverType.choices)
     inventory = models.PositiveIntegerField(default=0)
-    daily_fee = models.DecimalField(max_digits=6, decimal_places=2)
+    daily_fee = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal(0.10))]
+    )
 
     class Meta:
         ordering = ["title"]
