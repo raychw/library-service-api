@@ -1,7 +1,10 @@
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.timezone import now
 
 from borrowings.models import Borrowing
 from borrowings.serializers import (
@@ -26,6 +29,33 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return BorrowingCreateSerializer
         return BorrowingSerializer
+
+    @action(detail=True, methods=["POST"])
+    def return_borrowing(self, request):
+        borrowing = self.get_object()
+
+        if borrowing.actual_return_date:
+            return Response(
+                {"error": "This borrowing has already been returned."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if request.user != borrowing.user and not request.user.is_staff:
+            return Response(
+                {"error": "You do not have permission to return this borrowing."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        borrowing.actual_return_date = now().date()
+        borrowing.save()
+
+        borrowing.book.inventory += 1
+        borrowing.book.save()
+
+        return Response(
+            {"message": "Borrowing returned successfully."},
+            status=status.HTTP_200_OK,
+        )
 
     def get_permissions(self):
         return [IsAuthenticated()]
