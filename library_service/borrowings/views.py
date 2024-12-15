@@ -12,26 +12,16 @@ from borrowings.serializers import (
     BorrowingDetailSerializer,
     BorrowingListSerializer,
     BorrowingCreateSerializer,
+    BorrowingReturnSerializer,
 )
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book", "user")
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["is_active"]
-    ordering_fields = ["borrow_date", "expected_return_date"]
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return BorrowingListSerializer
-        if self.action == "retrieve":
-            return BorrowingDetailSerializer
-        if self.action == "create":
-            return BorrowingCreateSerializer
-        return BorrowingSerializer
 
     @action(detail=True, methods=["POST"])
-    def return_borrowing(self, request):
+    def return_borrowing(self, request, pk=None):
         borrowing = self.get_object()
 
         if borrowing.actual_return_date:
@@ -56,6 +46,18 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             {"message": "Borrowing returned successfully."},
             status=status.HTTP_200_OK,
         )
+
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BorrowingListSerializer
+        if self.action == "retrieve":
+            return BorrowingDetailSerializer
+        if self.action == "create":
+            return BorrowingCreateSerializer
+        if self.action == "return_borrowing":
+            return BorrowingReturnSerializer
+        return BorrowingSerializer
 
     def get_permissions(self):
         return [IsAuthenticated()]
