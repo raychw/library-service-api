@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import mixins
 from django.utils.timezone import now
 
 from borrowings.models import Borrowing
@@ -14,7 +15,12 @@ from borrowings.serializers import (
 )
 
 
-class BorrowingViewSet(viewsets.ModelViewSet):
+class BorrowingViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = Borrowing.objects.select_related("book", "user")
     filterset_fields = ["is_active"]
 
