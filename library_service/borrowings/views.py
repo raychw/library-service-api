@@ -19,7 +19,7 @@ class BorrowingViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
-    viewsets.GenericViewSet
+    viewsets.GenericViewSet,
 ):
     queryset = Borrowing.objects.select_related("book", "user")
     filterset_fields = ["is_active"]
@@ -50,7 +50,6 @@ class BorrowingViewSet(
             {"message": "Borrowing returned successfully."},
             status=status.HTTP_200_OK,
         )
-
 
     def get_serializer_class(self):
         if self.action == "list":

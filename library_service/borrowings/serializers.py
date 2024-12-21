@@ -18,9 +18,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 
 class BorrowingListSerializer(serializers.ModelSerializer):
-    book = serializers.CharField(
-        source="book.title", read_only=True
-    )
+    book = serializers.CharField(source="book.title", read_only=True)
 
     class Meta:
         model = Borrowing
@@ -36,9 +34,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
     book = BookSerializer()
-    user_email = serializers.CharField(
-        source="user.email", read_only=True
-    )
+    user_email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = Borrowing
@@ -64,7 +60,9 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         book = attrs.get("book")
 
         if book.inventory == 0:
-            raise serializers.ValidationError({"book": "This book is currently unavailable."})
+            raise serializers.ValidationError(
+                {"book": "This book is currently unavailable."}
+            )
 
         return attrs
 
