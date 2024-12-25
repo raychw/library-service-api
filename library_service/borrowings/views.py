@@ -13,6 +13,7 @@ from borrowings.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
+from borrowings.utils import send_telegram_message
 
 
 class BorrowingViewSet(
@@ -87,4 +88,8 @@ class BorrowingViewSet(
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        borrowing = serializer.save(user=self.request.user)
+        user = borrowing.user
+        book = borrowing.book
+        message = f"{user.first_name} {user.last_name} has just borrowed \"{book.title}\""
+        send_telegram_message(message)
