@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "books",
     "users",
     "borrowings",
+    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -102,6 +103,17 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+Q_CLUSTER = {
+    "name": "DjangoQ",
+    "workers": 4,
+    "recycle": 500,
+    "timeout": 60,
+    "retry": 120,
+    "queue_limit": 50,
+    "bulk": 10,
+    "orm": "default",
 }
 
 # Password validation
