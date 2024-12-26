@@ -91,5 +91,5 @@ class BorrowingViewSet(
         borrowing = serializer.save(user=self.request.user)
         user = borrowing.user
         book = borrowing.book
-        message = f"{user.first_name} {user.last_name} has just borrowed \"{book.title}\""
+        message = f'{user.first_name} {user.last_name} has just borrowed "{book.title}"'
         send_telegram_message(message)

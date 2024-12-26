@@ -6,7 +6,10 @@ from django.utils.timezone import now
 def schedule_overdue_check():
     from django_q.models import Schedule
     from django_q.tasks import schedule
-    if not Schedule.objects.filter(func="borrowings.utils.check_overdue_borrowings").exists():
+
+    if not Schedule.objects.filter(
+        func="borrowings.utils.check_overdue_borrowings"
+    ).exists():
         schedule(
             "borrowings.utils.check_overdue_borrowings",
             schedule_type="D",
