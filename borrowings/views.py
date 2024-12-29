@@ -13,7 +13,10 @@ from borrowings.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
-from borrowings.utils import send_telegram_message
+from borrowings.utils import (
+    send_telegram_message,
+    create_stripe_payment_session
+)
 
 
 class BorrowingViewSet(
@@ -91,5 +94,8 @@ class BorrowingViewSet(
         borrowing = serializer.save(user=self.request.user)
         user = borrowing.user
         book = borrowing.book
+
+        create_stripe_payment_session(borrowing)
+
         message = f'{user.first_name} {user.last_name} has just borrowed "{book.title}"'
         send_telegram_message(message)
