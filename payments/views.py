@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 
 from payments.models import Payment
 from payments.serializers import (
@@ -8,7 +8,11 @@ from payments.serializers import (
 )
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Payment.objects.prefetch_related("borrowing")
 
     def get_serializer_class(self):
@@ -25,3 +29,4 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         if not user.is_staff:
             queryset = queryset.filter(user=user)
+        return queryset
