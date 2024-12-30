@@ -25,7 +25,7 @@ class PaymentViewSet(
     def get_queryset(self):
         user = self.request.user
 
-        queryset = Payment.objects.select_related("borrowing", "user")
+        queryset = Payment.objects.prefetch_related("borrowing")
 
         if not user.is_staff:
             queryset = queryset.filter(user=user)
