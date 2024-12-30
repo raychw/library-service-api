@@ -2,11 +2,10 @@ import os
 import requests
 import stripe
 from django.conf import settings
-from django.http import HttpResponse
 from datetime import date
+from django.urls.base import reverse
 from dotenv import load_dotenv
 from decimal import Decimal
-from rest_framework import status
 
 from borrowings.models import Borrowing
 from payments.models import Payment
@@ -52,11 +51,14 @@ def check_overdue_borrowings() -> None:
         send_telegram_message("No borrowings overdue today!")
 
 
-def create_stripe_payment_session(borrowing):
+def create_stripe_payment_session(request, borrowing):
     try:
         borrowing_duration = (borrowing.expected_return_date - borrowing.borrow_date).days
         total_price = borrowing.book.daily_fee * borrowing_duration
         unit_amount = int(total_price * 100)
+
+        success_url = request.build_absolute_uri(reverse("payment-success")) + "?session_id={CHECKOUT_SESSION_ID}"
+        cancel_url = request.build_absolute_uri(reverse("payment-cancel")) + "?session_id={CHECKOUT_SESSION_ID}"
 
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -73,8 +75,8 @@ def create_stripe_payment_session(borrowing):
                 }
             ],
             mode="payment",
-            success_url="http://127.0.0.1:8000/api/library_service/payments/success",
-            cancel_url="http://127.0.0.1:8000/api/library_service/payments/cancel",
+            success_url=success_url,
+            cancel_url=cancel_url,
         )
 
         payment = Payment.objects.create(
