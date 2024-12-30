@@ -24,6 +24,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 class BorrowingListSerializer(serializers.ModelSerializer):
     book = serializers.CharField(source="book.title", read_only=True)
     user = serializers.CharField(source="user.full_name", read_only=True)
+    payments = serializers.StringRelatedField(source="payment_set", many=True)
 
     class Meta:
         model = Borrowing
@@ -34,6 +35,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
+            "payments",
         )
 
 
