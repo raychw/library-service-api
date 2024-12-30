@@ -95,7 +95,7 @@ class BorrowingViewSet(
         user = borrowing.user
         book = borrowing.book
 
-        create_stripe_payment_session(borrowing)
+        create_stripe_payment_session(self.request, borrowing)
 
         message = f'{user.first_name} {user.last_name} has just borrowed "{book.title}"'
         send_telegram_message(message)
