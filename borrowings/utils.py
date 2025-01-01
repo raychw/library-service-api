@@ -51,14 +51,26 @@ def check_overdue_borrowings() -> None:
         send_telegram_message("No borrowings overdue today!")
 
 
+FINE_MULTIPLIER = 2
+
 def create_stripe_payment_session(request, borrowing):
     try:
         borrowing_duration = (borrowing.expected_return_date - borrowing.borrow_date).days
-        total_price = borrowing.book.daily_fee * borrowing_duration
+        total_price = Decimal(borrowing.book.daily_fee) * borrowing_duration
         unit_amount = int(total_price * 100)
+        payment_type = Payment.PaymentType.PAYMENT
 
         success_url = request.build_absolute_uri(reverse("payment-success")) + "?session_id={CHECKOUT_SESSION_ID}"
         cancel_url = request.build_absolute_uri(reverse("payment-cancel")) + "?session_id={CHECKOUT_SESSION_ID}"
+
+        if borrowing.actual_return_date:
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                overdue_days = (borrowing.actual_return_date - borrowing.expected_return_date).days
+                total_price = Decimal(overdue_days * borrowing.book.daily_fee * FINE_MULTIPLIER)
+                unit_amount = int(total_price * 100)
+                payment_type = Payment.PaymentType.FINE
+            else:
+                return
 
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -82,9 +94,9 @@ def create_stripe_payment_session(request, borrowing):
         payment = Payment.objects.create(
             session_id=session.id,
             session_url=session.url,
-            amount=Decimal(total_price),
+            amount=total_price,
             status=Payment.PaymentStatus.PENDING,
-            type=Payment.PaymentType.PAYMENT,
+            type=payment_type,
             borrowing=borrowing,
         )
 
