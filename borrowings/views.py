@@ -14,10 +14,7 @@ from borrowings.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
-from borrowings.utils import (
-    send_telegram_message,
-    create_stripe_payment_session
-)
+from borrowings.utils import send_telegram_message, create_stripe_payment_session
 
 
 class BorrowingViewSet(
@@ -90,9 +87,13 @@ class BorrowingViewSet(
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if Payment.objects.filter(borrowing=borrowing, status=Payment.PaymentStatus.PENDING).exists():
+        if Payment.objects.filter(
+            borrowing=borrowing, status=Payment.PaymentStatus.PENDING
+        ).exists():
             return Response(
-                {"error": "You have a pending payment, please complete it before returning the borrowing."},
+                {
+                    "error": "You have a pending payment, please complete it before returning the borrowing."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -103,7 +104,9 @@ class BorrowingViewSet(
             create_stripe_payment_session(self.request, borrowing)
 
             return Response(
-                {"error": "You have returned the book late, please pay the fine attached to your borrowing."},
+                {
+                    "error": "You have returned the book late, please pay the fine attached to your borrowing."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

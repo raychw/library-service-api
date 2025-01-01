@@ -17,6 +17,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 def send_telegram_message(text: str) -> None:
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"}
@@ -53,20 +54,33 @@ def check_overdue_borrowings() -> None:
 
 FINE_MULTIPLIER = 2
 
+
 def create_stripe_payment_session(request, borrowing):
     try:
-        borrowing_duration = (borrowing.expected_return_date - borrowing.borrow_date).days
+        borrowing_duration = (
+            borrowing.expected_return_date - borrowing.borrow_date
+        ).days
         total_price = Decimal(borrowing.book.daily_fee) * borrowing_duration
         unit_amount = int(total_price * 100)
         payment_type = Payment.PaymentType.PAYMENT
 
-        success_url = request.build_absolute_uri(reverse("payment-success")) + "?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url = request.build_absolute_uri(reverse("payment-cancel")) + "?session_id={CHECKOUT_SESSION_ID}"
+        success_url = (
+            request.build_absolute_uri(reverse("payment-success"))
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
+        cancel_url = (
+            request.build_absolute_uri(reverse("payment-cancel"))
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
 
         if borrowing.actual_return_date:
             if borrowing.actual_return_date > borrowing.expected_return_date:
-                overdue_days = (borrowing.actual_return_date - borrowing.expected_return_date).days
-                total_price = Decimal(overdue_days * borrowing.book.daily_fee * FINE_MULTIPLIER)
+                overdue_days = (
+                    borrowing.actual_return_date - borrowing.expected_return_date
+                ).days
+                total_price = Decimal(
+                    overdue_days * borrowing.book.daily_fee * FINE_MULTIPLIER
+                )
                 unit_amount = int(total_price * 100)
                 payment_type = Payment.PaymentType.FINE
             else:

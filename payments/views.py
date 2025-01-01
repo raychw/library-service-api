@@ -50,19 +50,20 @@ def payment_success(request):
         if session.payment_status == "paid":
             payment.status = Payment.PaymentStatus.PAID
             payment.save()
-            return Response({
-                "message": "Payment successful",
-                "customer": {
-                    "id": customer.id,
-                    "name": customer.full_name
+            return Response(
+                {
+                    "message": "Payment successful",
+                    "customer": {"id": customer.id, "name": customer.full_name},
+                    "payment_status": "Paid",
                 },
-                "payment_status": "Paid"
-            }, status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK,
+            )
         else:
             return JsonResponse({"error": "Payment not completed yet."}, status=400)
 
     except stripe.error.InvalidRequestError as e:
         return JsonResponse({"error": str(e)}, status=400)
+
 
 @api_view(["GET"])
 def canceled_payment(request):
@@ -70,16 +71,18 @@ def canceled_payment(request):
     try:
         session = stripe.checkout.Session.retrieve(session_id)
         customer = request.user
-        expiration = datetime.datetime.fromtimestamp(session.expires_at).strftime('%Y-%m-%d %H:%M:%S')
+        expiration = datetime.datetime.fromtimestamp(session.expires_at).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
 
-        return Response({
-            "message": "Payment canceled",
-            "customer": {
-                "id": customer.id,
-                "name": customer.full_name
+        return Response(
+            {
+                "message": "Payment canceled",
+                "customer": {"id": customer.id, "name": customer.full_name},
+                "session_expires_at": expiration,
             },
-            "session_expires_at": expiration
-        }, status=status.HTTP_200_OK)
+            status=status.HTTP_200_OK,
+        )
 
     except stripe.error.InvalidRequestError as e:
         return JsonResponse({"error": str(e)}, status=400)
