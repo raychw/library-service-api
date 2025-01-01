@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import mixins
 from django.utils.timezone import now
+from drf_spectacular.utils import extend_schema
 
 from borrowings.models import Borrowing
 from payments.models import Payment
@@ -71,6 +72,11 @@ class BorrowingViewSet(
         message = f'{user.first_name} {user.last_name} has just borrowed "{book.title}"'
         send_telegram_message(message)
 
+    @extend_schema(
+        summary="Returns a borrowing",
+        description="This endpoint returns a borrowing or displays an error if the borrowing can't be returned.",
+        responses={200: str},
+    )
     @action(detail=True, methods=["POST"])
     def return_borrowing(self, request, pk=None):
         borrowing = self.get_object()

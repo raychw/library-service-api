@@ -1,11 +1,11 @@
 import datetime
-
 import stripe
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from drf_spectacular.utils import extend_schema
 
 from payments.models import Payment
 from payments.serializers import (
@@ -39,6 +39,11 @@ class PaymentViewSet(
         return queryset
 
 
+@extend_schema(
+    summary="Display payment success message",
+    description="This endpoint displays a payment success message and user credentials.",
+    responses={200: str},
+)
 @api_view(["GET"])
 def payment_success(request):
     session_id = request.GET.get("session_id")
@@ -65,6 +70,12 @@ def payment_success(request):
         return JsonResponse({"error": str(e)}, status=400)
 
 
+@extend_schema(
+    summary="Display payment canceled message",
+    description="This endpoint displays a message about payment being canceled "
+    "and reminds user that they can pay in the next 24 hours.",
+    responses={200: str},
+)
 @api_view(["GET"])
 def canceled_payment(request):
     session_id = request.GET.get("session_id")
