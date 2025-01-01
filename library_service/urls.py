@@ -25,4 +25,5 @@ urlpatterns = [
     path("api/library_service/books/", include("books.urls")),
     path("api/library_service/users/", include("users.urls")),
     path("api/library_service/borrowings/", include("borrowings.urls")),
+    path("api/library_service/payments/", include("payments.urls")),
 ]

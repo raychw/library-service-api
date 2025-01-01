@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from datetime import timedelta
 from django.utils.timezone import now
+from django.db.utils import OperationalError
 
 
 def schedule_overdue_check():
@@ -22,4 +23,10 @@ class BorrowingsConfig(AppConfig):
     name = "borrowings"
 
     def ready(self):
-        schedule_overdue_check()
+        from django.db import connection
+
+        try:
+            if "django_q_schedule" in connection.introspection.table_names():
+                schedule_overdue_check()
+        except OperationalError:
+            pass

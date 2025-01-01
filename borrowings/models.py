@@ -24,3 +24,6 @@ class Borrowing(models.Model):
                 name="actual_return_after_borrow",
             ),
         ]
+
+    def __str__(self):
+        return f"Borrowing #{self.id} - {self.book.title}"
