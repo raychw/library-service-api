@@ -6,6 +6,7 @@ from rest_framework import mixins
 from django.utils.timezone import now
 
 from borrowings.models import Borrowing
+from payments.models import Payment
 from borrowings.serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
@@ -27,33 +28,6 @@ class BorrowingViewSet(
 ):
     queryset = Borrowing.objects.select_related("book", "user")
     filterset_fields = ["is_active"]
-
-    @action(detail=True, methods=["POST"])
-    def return_borrowing(self, request, pk=None):
-        borrowing = self.get_object()
-
-        if borrowing.actual_return_date:
-            return Response(
-                {"error": "This borrowing has already been returned."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if request.user != borrowing.user and not request.user.is_staff:
-            return Response(
-                {"error": "You do not have permission to return this borrowing."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        borrowing.actual_return_date = now().date()
-        borrowing.save()
-
-        borrowing.book.inventory += 1
-        borrowing.book.save()
-
-        return Response(
-            {"message": "Borrowing returned successfully."},
-            status=status.HTTP_200_OK,
-        )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -99,3 +73,44 @@ class BorrowingViewSet(
 
         message = f'{user.first_name} {user.last_name} has just borrowed "{book.title}"'
         send_telegram_message(message)
+
+    @action(detail=True, methods=["POST"])
+    def return_borrowing(self, request, pk=None):
+        borrowing = self.get_object()
+
+        if borrowing.actual_return_date:
+            return Response(
+                {"error": "This borrowing has already been returned."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if request.user != borrowing.user and not request.user.is_staff:
+            return Response(
+                {"error": "You do not have permission to return this borrowing."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if Payment.objects.filter(borrowing=borrowing, status=Payment.PaymentStatus.PENDING).exists():
+            return Response(
+                {"error": "You have a pending payment, please complete it before returning the borrowing."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        borrowing.actual_return_date = now().date()
+        borrowing.save()
+
+        if borrowing.actual_return_date > borrowing.expected_return_date:
+            create_stripe_payment_session(self.request, borrowing)
+
+            return Response(
+                {"error": "You have returned the book late, please pay the fine attached to your borrowing."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        borrowing.book.inventory += 1
+        borrowing.book.save()
+
+        return Response(
+            {"message": "Borrowing returned successfully."},
+            status=status.HTTP_200_OK,
+        )
