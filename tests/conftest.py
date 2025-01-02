@@ -16,7 +16,12 @@ def client():
 
 @pytest.fixture
 def user() -> User:
-    return User.objects.create_user(email="testuser@test.com", password="testpassword")
+    return User.objects.create_user(
+        email="testuser@test.com",
+        first_name="Test",
+        last_name="User",
+        password="testpassword"
+    )
 
 
 @pytest.fixture
