@@ -106,6 +106,9 @@ class BorrowingViewSet(
         borrowing.actual_return_date = now().date()
         borrowing.save()
 
+        borrowing.book.inventory += 1
+        borrowing.book.save()
+
         if borrowing.actual_return_date > borrowing.expected_return_date:
             create_stripe_payment_session(self.request, borrowing)
 
@@ -115,9 +118,6 @@ class BorrowingViewSet(
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        borrowing.book.inventory += 1
-        borrowing.book.save()
 
         return Response(
             {"message": "Borrowing returned successfully."},
