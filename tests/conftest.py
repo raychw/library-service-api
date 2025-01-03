@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 
 from books.models import Book
 from borrowings.models import Borrowing
+from payments.models import Payment
 
 User = get_user_model()
 
@@ -49,4 +50,16 @@ def borrowing(book, user) -> Borrowing:
         expected_return_date="2025-02-02",
         book=book,
         user=user,
+    )
+
+
+@pytest.fixture
+def payment(borrowing) -> Payment:
+    return Payment.objects.create(
+        status=Payment.PaymentStatus.PENDING,
+        type=Payment.PaymentType.PAYMENT,
+        borrowing=borrowing,
+        session_url="http://test.com",
+        session_id="testsessionid",
+        amount=1.00,
     )
