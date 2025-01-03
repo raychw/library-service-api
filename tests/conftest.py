@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from books.models import Book
+from borrowings.models import Borrowing
 
 User = get_user_model()
 
@@ -38,4 +39,14 @@ def book() -> Book:
         author="Test Author",
         cover=Book.CoverType.HARD,
         daily_fee=1.00,
+        inventory=1,
+    )
+
+
+@pytest.fixture
+def borrowing(book, user) -> Borrowing:
+    return Borrowing.objects.create(
+        expected_return_date="2025-02-02",
+        book=book,
+        user=user,
     )
