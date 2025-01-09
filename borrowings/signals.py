@@ -17,6 +17,17 @@ def schedule_overdue_check():
         )
 
 
+def schedule_bot_startup_message():
+    if not Schedule.objects.filter(
+        func="borrowings.utils.bot_startup_message"
+    ).exists():
+        schedule(
+            "borrowings.utils.bot_startup_message",
+            schedule_type=Schedule.ONCE,
+            next_run=now() + timedelta(seconds=10),
+        )
+
+
 @receiver(post_migrate)
 def on_post_migrate(sender, **kwargs):
     from django.db import connection
@@ -24,5 +35,6 @@ def on_post_migrate(sender, **kwargs):
     try:
         if "django_q_schedule" in connection.introspection.table_names():
             schedule_overdue_check()
+            schedule_bot_startup_message()
     except Exception as e:
         print(f"Error during task scheduling: {e}")

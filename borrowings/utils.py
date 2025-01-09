@@ -28,6 +28,10 @@ def send_telegram_message(text: str) -> None:
         print(f"Error sending message: {error}")
 
 
+def bot_startup_message() -> None:
+    send_telegram_message("The bot is now up and running!")
+
+
 def check_overdue_borrowings() -> None:
     today = date.today()
 
