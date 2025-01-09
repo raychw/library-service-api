@@ -48,21 +48,30 @@ def test_user_cannot_change_their_id(user) -> None:
 @pytest.mark.django_db
 def test_user_can_modify_their_credentials(user, client) -> None:
     client.force_authenticate(user)
-    assert client.patch(
-        f"{MAIN_URL}/users/me/",
-        data={"first_name": "New Name"},
-        password="testpassword",
-    ).status_code == 200
-    assert client.patch(
-        f"{MAIN_URL}/users/me/",
-        data={"last_name": "New Last Name"},
-        password="testpassword",
-    ).status_code == 200
-    assert client.patch(
-        f"{MAIN_URL}/users/me/",
-        data={"email": "newemail@test.com"},
-        password="testpassword",
-    ).status_code == 200
+    assert (
+        client.patch(
+            f"{MAIN_URL}/users/me/",
+            data={"first_name": "New Name"},
+            password="testpassword",
+        ).status_code
+        == 200
+    )
+    assert (
+        client.patch(
+            f"{MAIN_URL}/users/me/",
+            data={"last_name": "New Last Name"},
+            password="testpassword",
+        ).status_code
+        == 200
+    )
+    assert (
+        client.patch(
+            f"{MAIN_URL}/users/me/",
+            data={"email": "newemail@test.com"},
+            password="testpassword",
+        ).status_code
+        == 200
+    )
 
 
 @pytest.mark.django_db
@@ -72,12 +81,15 @@ def test_unauthorized_user_cannot_reach_profile(client) -> None:
 
 @pytest.mark.django_db
 def test_anyone_can_register(client) -> None:
-    assert client.post(
-        f"{MAIN_URL}/users/",
-        data={
-            "email": "testemail@test.com",
-            "first_name": "Test",
-            "last_name": "User",
-            "password": "testpassword",
-        },
-    ).status_code == 201
+    assert (
+        client.post(
+            f"{MAIN_URL}/users/",
+            data={
+                "email": "testemail@test.com",
+                "first_name": "Test",
+                "last_name": "User",
+                "password": "testpassword",
+            },
+        ).status_code
+        == 201
+    )

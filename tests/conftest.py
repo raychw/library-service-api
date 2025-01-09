@@ -22,7 +22,7 @@ def user() -> User:
         email="testuser@test.com",
         first_name="Test",
         last_name="User",
-        password="testpassword"
+        password="testpassword",
     )
 
 

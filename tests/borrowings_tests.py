@@ -30,17 +30,25 @@ def test_cannot_borrow_unavailable_book(borrowing, book, user, client) -> None:
     book.inventory = 0
     book.save()
     client.force_authenticate(user)
-    assert client.post(
-        f"{MAIN_URL}/borrowings/",
-        data={"book": book.id, "expected_return_date": "2025-02-02"}
-    ).status_code == 400
+    assert (
+        client.post(
+            f"{MAIN_URL}/borrowings/",
+            data={"book": book.id, "expected_return_date": "2025-02-02"},
+        ).status_code
+        == 400
+    )
 
 
 @pytest.mark.django_db
 def test_regular_user_cannot_modify_borrowings(borrowing, user, client) -> None:
     client.force_authenticate(user)
     for method in ["post", "put", "patch", "delete"]:
-        assert getattr(client, method)(f"{MAIN_URL}/borrowings/{borrowing.id}/", data={}).status_code == 405
+        assert (
+            getattr(client, method)(
+                f"{MAIN_URL}/borrowings/{borrowing.id}/", data={}
+            ).status_code
+            == 405
+        )
 
 
 @pytest.mark.django_db
@@ -62,7 +70,12 @@ def test_admin_can_see_all_borrowings(borrowing, user, admin, client) -> None:
 @pytest.mark.django_db
 def test_return_borrowing(borrowing, user, client) -> None:
     client.force_authenticate(user)
-    assert client.post(f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/").status_code == 200
+    assert (
+        client.post(
+            f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/"
+        ).status_code
+        == 200
+    )
     borrowing.refresh_from_db()
     assert borrowing.actual_return_date is not None
 
@@ -74,7 +87,12 @@ def test_cannot_return_returned_borrowing(borrowing, user, client) -> None:
     borrowing.actual_return_date = "2025-01-02"
     borrowing.save()
     client.force_authenticate(user)
-    assert client.post(f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/").status_code == 400
+    assert (
+        client.post(
+            f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/"
+        ).status_code
+        == 400
+    )
 
 
 @pytest.mark.django_db
@@ -84,7 +102,12 @@ def test_book_inventory_increases_after_return(book, borrowing, user, client) ->
     borrowing.book = book
     borrowing.save()
     client.force_authenticate(user)
-    assert client.post(f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/").status_code == 200
+    assert (
+        client.post(
+            f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/"
+        ).status_code
+        == 200
+    )
     book.refresh_from_db()
     assert book.inventory == 2
 
@@ -95,4 +118,9 @@ def test_overdue_borrowing_fine(borrowing, user, client) -> None:
     borrowing.expected_return_date = "2024-12-30"
     borrowing.save()
     client.force_authenticate(user)
-    assert client.post(f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/").status_code == 400
+    assert (
+        client.post(
+            f"{MAIN_URL}/borrowings/{borrowing.id}/return_borrowing/"
+        ).status_code
+        == 400
+    )

@@ -39,7 +39,6 @@ def test_book_cover_only_hard_or_soft(book) -> None:
         book.save()
 
 
-
 @pytest.mark.django_db
 def test_regular_user_can_list_and_retrieve(book, user, client) -> None:
     client.force_authenticate(user)
@@ -51,11 +50,19 @@ def test_regular_user_can_list_and_retrieve(book, user, client) -> None:
 def test_regular_user_readonly(book, user, client) -> None:
     client.force_authenticate(user)
     for method in ["post", "put", "patch", "delete"]:
-        assert getattr(client, method)(f"{MAIN_URL}/books/{book.id}/", data={}).status_code == 403
+        assert (
+            getattr(client, method)(f"{MAIN_URL}/books/{book.id}/", data={}).status_code
+            == 403
+        )
 
 
 @pytest.mark.django_db
 def test_admin_can_modify_books(book, admin, client) -> None:
     client.force_authenticate(admin)
-    assert client.patch(f"{MAIN_URL}/books/{book.id}/", data={"title": "New Title"}).status_code == 200
+    assert (
+        client.patch(
+            f"{MAIN_URL}/books/{book.id}/", data={"title": "New Title"}
+        ).status_code
+        == 200
+    )
     assert client.delete(f"{MAIN_URL}/books/{book.id}/").status_code == 204
